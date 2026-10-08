@@ -1,0 +1,304 @@
+{
+  "scenarios": [
+    {
+      "code": "ESC-BIBLIOTECA-01",
+      "version": "2.0",
+      "title": "Sistema de Préstamos de la Biblioteca",
+      "summary": "La Biblioteca Central de la Facultad quiere dejar las libretas de papel y controlar préstamos, devoluciones y multas con un sistema web.",
+      "client_name": "Lic. Rosa Méndez",
+      "client_role": "Coordinadora de la Biblioteca Central",
+      "greeting": "¡Hola! 👋 Gracias por escribirme. Tenemos muchos problemas con los préstamos de libros y queremos un sistema. Pregúntame lo que necesites.",
+      "rounds": [
+        {"topic": "Objetivo", "options": [
+          {"quality": "high", "text": "¿Cuál es el problema principal que quiere resolver con el sistema?",
+           "rationale": "Pregunta abierta dirigida al propósito del sistema: revela la necesidad de negocio y el primer requisito funcional.",
+           "answer": [
+             {"text": "Hoy llevamos los préstamos en libretas y se nos pierden muchos libros."},
+             {"text": "Queremos que el sistema registre cada préstamo con el alumno, el libro y la fecha de devolución.",
+              "req": {"key": "B01", "type": "RF", "feedback": "Es un Requisito Funcional: describe un servicio concreto que el sistema debe realizar (registrar préstamos con sus datos).", "hint": "Fíjate en el verbo principal: ¿expresa una acción del sistema o una cualidad?"}}
+           ]},
+          {"quality": "medium", "text": "¿Quiere un sistema para la biblioteca?",
+           "rationale": "Pregunta cerrada (sí/no): confirma algo que ya se sabía y obtiene muy poca información nueva.",
+           "answer": [{"text": "Sí, claro, por eso los contacté."}, {"text": "Necesitamos algo para los préstamos."}]},
+          {"quality": "low", "text": "¿De qué color le gustaría el logo del sistema?",
+           "rationale": "Detalle estético irrelevante en la etapa de elicitación; no revela ninguna necesidad.",
+           "answer": [{"text": "Ay, no sé… ¿el azul de la universidad? 😅"}, {"text": "La verdad no lo había pensado."}]}
+        ]},
+        {"topic": "Usuarios", "options": [
+          {"quality": "high", "text": "¿Quiénes usarán el sistema y qué necesita hacer cada uno?",
+           "rationale": "Identifica a los actores y sus objetivos a la vez; de ahí surgen requisitos funcionales y de usabilidad.",
+           "answer": [
+             {"text": "Lo usarán los bibliotecarios en el mostrador y los alumnos desde sus casas."},
+             {"text": "Los alumnos deben poder consultar el catálogo y ver si un libro está disponible.",
+              "req": {"key": "B02", "type": "RF", "feedback": "Es un Requisito Funcional: define una capacidad que el sistema ofrece al alumno (consultar catálogo y disponibilidad).", "hint": "¿Describe algo que el usuario puede HACER con el sistema?"}},
+             {"text": "Muchos alumnos no son hábiles con la computadora, así que un alumno nuevo debería aprender a buscar un libro en menos de cinco minutos sin ayuda.",
+              "req": {"key": "B03", "type": "RNF", "feedback": "Es un Requisito No Funcional de usabilidad (facilidad de aprendizaje), medible: 5 minutos.", "hint": "La búsqueda ya existe como función; ¿qué está restringiendo esta frase sobre ella?"}}
+           ]},
+          {"quality": "medium", "text": "¿Los alumnos también van a usar el sistema?",
+           "rationale": "Identifica un actor, pero al ser cerrada no averigua qué necesita hacer.",
+           "answer": [{"text": "Sí, también los alumnos."}, {"text": "Aunque todavía no sé bien para qué lo usarían."}]},
+          {"quality": "low", "text": "¿Cuántos años lleva trabajando en la biblioteca?",
+           "rationale": "Plática personal: genera confianza, pero no aporta información sobre el sistema.",
+           "answer": [{"text": "¡Ya llevo doce años aquí! He visto pasar muchas generaciones. 😊"}]}
+        ]},
+        {"topic": "Préstamos", "options": [
+          {"quality": "high", "text": "¿Me puede describir paso a paso cómo se hace un préstamo y qué reglas aplican?",
+           "rationale": "Pide el proceso y sus reglas de negocio; las reglas suelen convertirse en requisitos funcionales verificables.",
+           "answer": [
+             {"text": "El bibliotecario revisa la credencial del alumno y anota el libro."},
+             {"text": "El sistema debe impedir el préstamo si el alumno ya tiene tres libros prestados.",
+              "req": {"key": "B04", "type": "RF", "feedback": "Es un Requisito Funcional: es una regla de negocio que el sistema ejecuta (validar el límite de tres préstamos).", "hint": "Las reglas de negocio que el sistema aplica, ¿son comportamiento o calidad?"}}
+           ]},
+          {"quality": "medium", "text": "¿Hay algún límite de libros por alumno?",
+           "rationale": "Va en la dirección correcta, pero es cerrada y específica: obtiene un dato incierto sin entender el proceso completo.",
+           "answer": [{"text": "Sí, hay un límite… creo que son tres libros."}, {"text": "Tendría que revisarlo en el reglamento."}]},
+          {"quality": "low", "text": "¿Qué libro me recomienda leer?",
+           "rationale": "Pregunta fuera del tema del proyecto; consume tiempo de la entrevista sin aportar requisitos.",
+           "answer": [{"text": "¡Cien años de soledad! 📚"}, {"text": "Aunque casi nunca está disponible, jaja."}]}
+        ]},
+        {"topic": "Devoluciones y multas", "options": [
+          {"quality": "high", "text": "¿Qué ocurre cuando un alumno devuelve un libro tarde o no lo devuelve?",
+           "rationale": "Explora los casos excepcionales del proceso, donde aparecen requisitos que suelen olvidarse.",
+           "answer": [
+             {"text": "Cobramos una multa de cinco pesos por día de retraso."},
+             {"text": "El sistema debe calcular automáticamente la multa al registrar una devolución tardía.",
+              "req": {"key": "B05", "type": "RF", "feedback": "Es un Requisito Funcional: describe un cálculo que el sistema realiza como parte de su comportamiento.", "hint": "¿Es algo que el sistema hace o una característica de cómo lo hace?"}},
+             {"text": "También debe enviar un correo de recordatorio dos días antes de la fecha de devolución.",
+              "req": {"key": "B06", "type": "RF", "feedback": "Es un Requisito Funcional: el envío de recordatorios es un servicio que el sistema debe proveer.", "hint": "Piensa si podrías escribir un caso de uso para esto."}}
+           ]},
+          {"quality": "medium", "text": "¿Cobran multas?",
+           "rationale": "Confirma que existen multas, pero no indaga cómo se calculan ni qué debe hacer el sistema.",
+           "answer": [{"text": "Sí, algo cobramos cuando se retrasan."}]},
+          {"quality": "low", "text": "¿El sistema debería usar MySQL o PostgreSQL?",
+           "rationale": "Pregunta técnica prematura: el cliente no tiene ese conocimiento y además es una decisión de diseño, no un requisito.",
+           "answer": [{"text": "Uy, eso no lo sé, yo no soy de sistemas. 🤷‍♀️"}, {"text": "Eso ustedes lo deciden."}]}
+        ]},
+        {"topic": "Rendimiento", "options": [
+          {"quality": "high", "text": "¿Cuántas personas consultan el catálogo al mismo tiempo en los momentos de más demanda?",
+           "rationale": "Busca un dato cuantitativo de carga, indispensable para redactar un requisito de desempeño medible.",
+           "answer": [
+             {"text": "En época de exámenes llegamos a tener unos 200 alumnos consultando a la vez."},
+             {"text": "Las búsquedas del catálogo deben responder en menos de dos segundos aun con 200 usuarios simultáneos.",
+              "req": {"key": "B07", "type": "RNF", "feedback": "Es un Requisito No Funcional de eficiencia de desempeño: restringe el tiempo de respuesta bajo una carga medible.", "hint": "¿Agrega una función nueva o pone una condición medible a una existente?"}}
+           ]},
+          {"quality": "medium", "text": "¿El sistema tiene que ser rápido?",
+           "rationale": "Pregunta inductiva: casi cualquier cliente responde «sí», y la respuesta no es medible.",
+           "answer": [{"text": "Pues sí, que no sea lento, ¿no?"}]},
+          {"quality": "low", "text": "¿A qué hora suele salir a comer?",
+           "rationale": "Información personal sin relación con el sistema.",
+           "answer": [{"text": "Como a las dos, cuando baja la gente."}, {"text": "¿Por qué la pregunta? 🤔"}]}
+        ]},
+        {"topic": "Seguridad", "options": [
+          {"quality": "high", "text": "¿Qué información considera delicada y quién debería poder verla?",
+           "rationale": "Identifica datos sensibles y restricciones de acceso, base de los requisitos de seguridad.",
+           "answer": [
+             {"text": "Los datos personales de los alumnos, sin duda."},
+             {"text": "Las contraseñas de los usuarios deben almacenarse cifradas.",
+              "req": {"key": "B08", "type": "RNF", "feedback": "Es un Requisito No Funcional de seguridad (confidencialidad): define una propiedad de protección de los datos.", "hint": "¿El usuario percibe esto como algo que puede hacer, o como una propiedad del sistema?"}}
+           ]},
+          {"quality": "medium", "text": "¿Le preocupa la seguridad?",
+           "rationale": "Toca el tema correcto, pero es tan general que la respuesta no permite especificar nada.",
+           "answer": [{"text": "Sí, claro, a todos nos preocupa, ¿no?"}]},
+          {"quality": "low", "text": "¿Usa contraseña en su celular?",
+           "rationale": "Pregunta personal e incómoda que no se relaciona con el sistema.",
+           "answer": [{"text": "Jaja, sí, pero no se la voy a decir. 😄"}]}
+        ]},
+        {"topic": "Disponibilidad", "options": [
+          {"quality": "high", "text": "¿En qué horarios necesitan los alumnos consultar el catálogo?",
+           "rationale": "Descubre la ventana de servicio real de los usuarios, de donde surge el requisito de disponibilidad.",
+           "answer": [
+             {"text": "La biblioteca abre de 7 a 21 horas, pero los alumnos consultan mucho de noche."},
+             {"text": "El catálogo en línea debe estar disponible el 99 % del tiempo, las 24 horas.",
+              "req": {"key": "B09", "type": "RNF", "feedback": "Es un Requisito No Funcional de fiabilidad (disponibilidad), expresado con una métrica verificable (99 %).", "hint": "Los porcentajes de tiempo en servicio suelen describir una cualidad del sistema."}}
+           ]},
+          {"quality": "medium", "text": "¿La biblioteca abre los sábados?",
+           "rationale": "Obtiene un dato del horario físico, pero no averigua cuándo necesitan los usuarios el sistema.",
+           "answer": [{"text": "Solo medio día, de 9 a 1."}]},
+          {"quality": "low", "text": "¿Le gusta trabajar de noche?",
+           "rationale": "Preferencia personal sin relación con los requisitos.",
+           "answer": [{"text": "No mucho, prefiero estar en mi casa. 🏠"}]}
+        ]},
+        {"topic": "Reportes", "options": [
+          {"quality": "high", "text": "¿Qué información le solicita la dirección y cada cuánto tiempo?",
+           "rationale": "Identifica a un interesado indirecto (la dirección) y una salida concreta del sistema con su periodicidad.",
+           "answer": [
+             {"text": "Cada mes la dirección nos pide estadísticas."},
+             {"text": "El sistema debe generar un reporte mensual de los libros más prestados.",
+              "req": {"key": "B10", "type": "RF", "feedback": "Es un Requisito Funcional: generar un reporte es una salida concreta que el sistema produce.", "hint": "¿Es un resultado que el sistema produce para un usuario?"}}
+           ]},
+          {"quality": "medium", "text": "¿Necesita reportes?",
+           "rationale": "Pregunta cerrada y genérica: no revela qué reporte, para quién ni con qué frecuencia.",
+           "answer": [{"text": "Supongo que sí, siempre nos piden algo."}]},
+          {"quality": "low", "text": "¿Conoce a la directora desde hace mucho?",
+           "rationale": "Chisme o plática social; no aporta al análisis.",
+           "answer": [{"text": "Sí, estudiamos juntas, fíjese. 😊"}]}
+        ]},
+        {"topic": "Plataforma", "options": [
+          {"quality": "high", "text": "¿Desde qué dispositivos accederán los alumnos al sistema?",
+           "rationale": "Revela restricciones de plataforma que se convierten en requisitos de compatibilidad.",
+           "answer": [
+             {"text": "La mayoría de los alumnos usan su celular."},
+             {"text": "La consulta del catálogo debe funcionar en navegadores de teléfonos Android y iOS.",
+              "req": {"key": "B11", "type": "RNF", "feedback": "Es un Requisito No Funcional de compatibilidad/portabilidad: restringe las plataformas donde operan las funciones.", "hint": "¿Habla de qué hace el sistema o de dónde debe funcionar?"}}
+           ]},
+          {"quality": "medium", "text": "¿El sistema será una página web?",
+           "rationale": "Propone una solución en lugar de preguntar por la necesidad; el cliente solo la acepta sin aportar datos.",
+           "answer": [{"text": "Me imagino que sí, ustedes saben más de eso."}]},
+          {"quality": "low", "text": "¿Qué celular tiene usted?",
+           "rationale": "Dato personal irrelevante: el sistema es para los alumnos, no depende del teléfono de la coordinadora.",
+           "answer": [{"text": "Uno que me regaló mi hijo, ya está viejito. 📱"}]}
+        ]}
+      ]
+    },
+    {
+      "code": "ESC-CAFETERIA-01",
+      "version": "2.0",
+      "title": "App de Pedidos de la Cafetería",
+      "summary": "La cafetería de la Facultad quiere una aplicación para que los estudiantes ordenen y paguen antes de llegar y así reducir las filas.",
+      "client_name": "Sr. Tomás Ávila",
+      "client_role": "Encargado de la Cafetería Universitaria",
+      "greeting": "¡Buenas! 🌮 Aquí andamos, con mucha gente a la hora de la comida. Quiero una app que nos ayude. ¿Qué necesitas saber?",
+      "rounds": [
+        {"topic": "Objetivo", "options": [
+          {"quality": "high", "text": "¿Qué problema quiere resolver con la aplicación?",
+           "rationale": "Pregunta abierta sobre el propósito: revela la necesidad central y el requisito principal.",
+           "answer": [
+             {"text": "Las filas a la hora de la comida son enormes y muchos se van sin comer."},
+             {"text": "Queremos que los estudiantes puedan hacer su pedido desde la aplicación antes de llegar.",
+              "req": {"key": "C01", "type": "RF", "feedback": "Es un Requisito Funcional: describe el servicio central que ofrece la aplicación (realizar pedidos).", "hint": "¿Es una acción que el usuario realiza con el sistema?"}}
+           ]},
+          {"quality": "medium", "text": "¿Quiere una aplicación para celular?",
+           "rationale": "Pregunta cerrada que sugiere una solución; confirma algo sin explicar el problema de fondo.",
+           "answer": [{"text": "Sí, eso me dijeron que era lo mejor."}]},
+          {"quality": "low", "text": "¿Cuál es el platillo más popular?",
+           "rationale": "Curiosidad interesante, pero no aporta requisitos del sistema.",
+           "answer": [{"text": "¡Las enchiladas zacatecanas, sin duda! 😋"}, {"text": "Se acaban antes de la una."}]}
+        ]},
+        {"topic": "Menú", "options": [
+          {"quality": "high", "text": "¿Cómo se define y actualiza el menú cada día?",
+           "rationale": "Explora un proceso de negocio recurrente; de ahí salen requisitos de gestión del menú y disponibilidad de platillos.",
+           "answer": [
+             {"text": "El menú cambia todos los días según lo que llega del mercado."},
+             {"text": "El encargado debe poder dar de alta y modificar los platillos del menú del día.",
+              "req": {"key": "C02", "type": "RF", "feedback": "Es un Requisito Funcional: define operaciones de gestión (alta y modificación) que el sistema permite.", "hint": "Dar de alta y modificar, ¿son acciones o cualidades?"}},
+             {"text": "Los platillos agotados deben mostrarse como no disponibles.",
+              "req": {"key": "C03", "type": "RF", "feedback": "Es un Requisito Funcional: es un comportamiento observable del sistema ante un estado (platillo agotado).", "hint": "¿Describe una reacción del sistema ante una situación?"}}
+           ]},
+          {"quality": "medium", "text": "¿El menú cambia seguido?",
+           "rationale": "Detecta que el menú varía, pero no averigua quién lo cambia ni qué debe hacer el sistema.",
+           "answer": [{"text": "Sí, a veces cambia."}]},
+          {"quality": "low", "text": "¿Qué ingredientes llevan las enchiladas?",
+           "rationale": "Pregunta sobre el producto, no sobre el sistema; no genera requisitos.",
+           "answer": [{"text": "Eso es secreto de la casa, joven. 🤫"}]}
+        ]},
+        {"topic": "Pagos", "options": [
+          {"quality": "high", "text": "¿Cómo le gustaría que paguen los estudiantes y qué cuidados hay que tener?",
+           "rationale": "Combina la función (pago) con sus restricciones (seguridad), obteniendo un RF y un RNF.",
+           "answer": [
+             {"text": "Ahorita aceptamos efectivo y tarjeta en caja."},
+             {"text": "La app debe permitir pagar con tarjeta de débito o crédito al confirmar el pedido.",
+              "req": {"key": "C04", "type": "RF", "feedback": "Es un Requisito Funcional: el pago en línea es un servicio que el sistema ofrece.", "hint": "¿Podrías dibujar un caso de uso para esto?"}},
+             {"text": "Por seguridad, la aplicación no debe guardar los números completos de las tarjetas.",
+              "req": {"key": "C05", "type": "RNF", "feedback": "Es un Requisito No Funcional de seguridad: es una restricción sobre cómo se manejan los datos.", "hint": "¿Restringe cómo se hace algo o agrega algo que hacer?"}}
+           ]},
+          {"quality": "medium", "text": "¿Aceptan tarjeta?",
+           "rationale": "Pregunta cerrada sobre la situación actual; no indaga cómo debe funcionar el pago en la app.",
+           "answer": [{"text": "En caja sí, con la terminal."}]},
+          {"quality": "low", "text": "¿Cuánto cuesta el café?",
+           "rationale": "Dato de precios que no define ningún comportamiento del sistema.",
+           "answer": [{"text": "Quince pesos el americano. ☕"}]}
+        ]},
+        {"topic": "Notificaciones", "options": [
+          {"quality": "high", "text": "¿Cómo se entera hoy el estudiante de que su pedido está listo y qué le gustaría mejorar?",
+           "rationale": "Contrasta el proceso actual con el deseado: técnica eficaz para descubrir requisitos.",
+           "answer": [
+             {"text": "Ahorita gritamos los nombres y es un desorden. 😩"},
+             {"text": "La app debe notificar al estudiante cuando su pedido esté listo para recoger.",
+              "req": {"key": "C06", "type": "RF", "feedback": "Es un Requisito Funcional: enviar notificaciones es una función del sistema.", "hint": "¿Es algo que el sistema hace en un momento determinado?"}}
+           ]},
+          {"quality": "medium", "text": "¿Quiere notificaciones?",
+           "rationale": "Sugiere la solución en vez de explorar el problema; la respuesta es un «sí» sin detalles.",
+           "answer": [{"text": "Pues si se puede, sí."}]},
+          {"quality": "low", "text": "¿Qué app de mensajería usa usted?",
+           "rationale": "Preferencia personal sin relación con los requisitos.",
+           "answer": [{"text": "WhatsApp, como todos. 😄"}]}
+        ]},
+        {"topic": "Rendimiento", "options": [
+          {"quality": "high", "text": "¿Cuántos pedidos reciben en la hora de más demanda?",
+           "rationale": "Obtiene un dato cuantitativo de carga que permite redactar un requisito de desempeño medible.",
+           "answer": [
+             {"text": "Entre 12 y 2 de la tarde recibimos unos 300 pedidos."},
+             {"text": "La confirmación de un pedido debe tardar menos de tres segundos en horas pico.",
+              "req": {"key": "C07", "type": "RNF", "feedback": "Es un Requisito No Funcional de desempeño: limita el tiempo de respuesta de una función existente.", "hint": "La confirmación ya es una función; ¿qué le exige esta frase?"}}
+           ]},
+          {"quality": "medium", "text": "¿Hay mucha gente a mediodía?",
+           "rationale": "Confirma que hay demanda, pero sin cifras no se puede especificar nada verificable.",
+           "answer": [{"text": "Uf, muchísima."}]},
+          {"quality": "low", "text": "¿La app debería programarse en Java o en Python?",
+           "rationale": "Pregunta técnica que el cliente no puede responder; es una decisión del equipo de desarrollo.",
+           "answer": [{"text": "Ni idea, joven, yo hago tortas. 🥪"}]}
+        ]},
+        {"topic": "Usabilidad", "options": [
+          {"quality": "high", "text": "¿Cuánto tiempo tienen los estudiantes para pedir y qué tan sencillo debe ser?",
+           "rationale": "Relaciona el contexto real de uso con una meta de facilidad de uso que puede medirse.",
+           "answer": [
+             {"text": "Los muchachos tienen muy poco tiempo entre clases."},
+             {"text": "Un pedido completo debe poder hacerse en no más de cuatro pantallas.",
+              "req": {"key": "C08", "type": "RNF", "feedback": "Es un Requisito No Funcional de usabilidad (eficiencia de uso), con un criterio medible.", "hint": "¿Agrega una función o mide la facilidad de una existente?"}}
+           ]},
+          {"quality": "medium", "text": "¿Debe ser fácil de usar?",
+           "rationale": "Pregunta inductiva con respuesta obvia; «fácil» no es verificable.",
+           "answer": [{"text": "Claro, que no sea complicado."}]},
+          {"quality": "low", "text": "¿Le gustan los videojuegos?",
+           "rationale": "Plática sin relación con el sistema.",
+           "answer": [{"text": "A mi nieto sí, yo no les entiendo. 🎮"}]}
+        ]},
+        {"topic": "Ventas", "options": [
+          {"quality": "high", "text": "¿Qué información de ventas necesita para administrar la cafetería?",
+           "rationale": "Se centra en las decisiones del cliente y descubre qué información debe producir el sistema.",
+           "answer": [
+             {"text": "Quiero saber qué se vende más para comprar mejor."},
+             {"text": "El sistema debe mostrar al encargado las ventas por día y por platillo.",
+              "req": {"key": "C09", "type": "RF", "feedback": "Es un Requisito Funcional: es una consulta/reporte que el sistema entrega al encargado.", "hint": "¿Es una salida de información que el sistema produce?"}}
+           ]},
+          {"quality": "medium", "text": "¿Lleva algún control de ventas?",
+           "rationale": "Describe la situación actual, pero no averigua qué necesita del sistema.",
+           "answer": [{"text": "Más o menos, en una libreta. 📒"}]},
+          {"quality": "low", "text": "¿Cuánto gana al mes?",
+           "rationale": "Pregunta indiscreta que puede incomodar al cliente y no aporta requisitos.",
+           "answer": [{"text": "Eso no se pregunta, joven. 😒"}]}
+        ]},
+        {"topic": "Accesibilidad", "options": [
+          {"quality": "high", "text": "¿Hay usuarios con alguna necesidad especial que debamos considerar?",
+           "rationale": "Busca usuarios que suelen olvidarse; genera requisitos de accesibilidad.",
+           "answer": [
+             {"text": "Tenemos compañeros con baja visión que también compran aquí."},
+             {"text": "La aplicación debe ser compatible con lectores de pantalla y permitir aumentar el tamaño del texto.",
+              "req": {"key": "C10", "type": "RNF", "feedback": "Es un Requisito No Funcional de accesibilidad: describe cualidades de la interfaz para incluir a más usuarios.", "hint": "¿Es una función de negocio o una cualidad de la interfaz?"}}
+           ]},
+          {"quality": "medium", "text": "¿La letra de la app debe ser grande?",
+           "rationale": "Se acerca al tema, pero propone un detalle concreto y no descubre a quién beneficia ni por qué.",
+           "answer": [{"text": "Mmm, pues que se lea bien, supongo."}]},
+          {"quality": "low", "text": "¿Qué música ponen en la cafetería?",
+           "rationale": "Detalle del ambiente del local, ajeno al sistema.",
+           "answer": [{"text": "Lo que traiga la radio, banda casi siempre. 🎺"}]}
+        ]},
+        {"topic": "Cancelaciones", "options": [
+          {"quality": "high", "text": "¿Qué debe pasar si un estudiante quiere cancelar o cambiar su pedido?",
+           "rationale": "Explora un flujo alterno; los casos de excepción generan reglas de negocio que deben especificarse.",
+           "answer": [
+             {"text": "A veces se arrepienten o se les cruza una clase."},
+             {"text": "El estudiante debe poder cancelar su pedido mientras no se haya empezado a preparar.",
+              "req": {"key": "C11", "type": "RF", "feedback": "Es un Requisito Funcional: define una operación (cancelar) con una regla de negocio (antes de la preparación).", "hint": "¿Describe una acción con una condición?"}}
+           ]},
+          {"quality": "medium", "text": "¿Se pueden cancelar los pedidos?",
+           "rationale": "Pregunta cerrada que obtiene una respuesta ambigua sin la regla de negocio.",
+           "answer": [{"text": "Pues… depende, a veces sí."}]},
+          {"quality": "low", "text": "¿Abren en vacaciones?",
+           "rationale": "Dato operativo del local que no cambia lo que el sistema debe hacer.",
+           "answer": [{"text": "No, en vacaciones cerramos todo. 🏖️"}]}
+        ]}
+      ]
+    }
+  ]
+}

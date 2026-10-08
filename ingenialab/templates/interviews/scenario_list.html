@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Elicitación{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Entrevistas con clientes virtuales</h1><p class="muted">Practica la elicitación de requisitos conversando con un cliente por chat.</p></div></div>
+<div class="instructions">
+  <b>¿Cómo funciona?</b>
+  <ol><li>Elige un escenario: se abrirá un chat con el cliente.</li>
+  <li>En cada turno elige una de 3 preguntas: una muy útil (+10), una más o menos útil (+5) y una que no aporta (0).</li>
+  <li>Tienes hasta {{ max_questions }} preguntas. Al final verás tu puntaje y la explicación de cada elección.</li></ol>
+</div>
+<h2>Escenarios disponibles</h2>
+<div class="grid-3" style="margin-bottom:1.5rem">
+  {% for s in scenarios %}
+  <div class="card">
+    <div class="client" style="margin-bottom:.6rem"><div class="avatar" aria-hidden="true">{{ s.client_initials }}</div><div><b>{{ s.title }}</b><div class="small muted">{{ s.client_name }} · {{ s.client_role }}</div></div></div>
+    <p class="small">{{ s.summary }}</p>
+    <p class="small muted">{{ s.scenario_code }} · v{{ s.version_number }} · hasta {{ max_questions }} preguntas</p>
+    <form method="post" action="{% url 'interviews:start' s.id %}">{% csrf_token %}<button class="btn" type="submit">Iniciar entrevista</button></form>
+  </div>
+  {% endfor %}
+</div>
+<div class="card">
+  <h2>Mis prácticas de elicitación</h2>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>Escenario</th><th>Fecha</th><th>Estado</th><th>Preguntas</th><th>Puntos</th><th></th></tr></thead>
+    <tbody>
+    {% for a in attempts %}
+      <tr><td>{{ a.version.title }}</td><td>{{ a.started_at|date:"d/m/Y H:i" }}</td>
+        <td>{% if a.status == "interviewing" %}<span class="tag hint">En curso</span>{% else %}<span class="tag ok">✔ Finalizada</span>{% endif %}</td>
+        <td>{{ a.log_entries.count }}</td>
+        <td>{% if a.status == "interviewing" %}—{% else %}{{ a.interview_score }}{% endif %}</td>
+        <td><a class="btn small secondary" href="{% url 'interviews:interview' a.id %}">{% if a.status == "interviewing" %}Reanudar{% else %}Ver resultados{% endif %}</a></td></tr>
+    {% empty %}<tr><td colspan="6" class="muted">Todavía no has iniciado ninguna práctica.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

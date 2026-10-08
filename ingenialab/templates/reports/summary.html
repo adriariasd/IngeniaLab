@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Reportes{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Exportar reporte de práctica</h1><p class="muted">Genera un PDF con tus requisitos clasificados, casos de uso con diagrama y resultados de inspección.</p></div>
+  {% if has_data %}<a class="btn" href="{% url 'progress:report_download' %}">⬇ Descargar PDF</a>{% endif %}
+</div>
+{% if not has_data %}
+<div class="feedback bad"><span class="icon">✖</span><div><strong>No hay actividades guardadas para generar el reporte técnico.</strong> Completa una clasificación, un caso de uso o una inspección.</div></div>
+{% else %}
+<div class="grid-3">
+  <div class="card"><h2>🎤 Requisitos clasificados</h2>
+    <ul class="item-list">{% for a in attempts %}{% if a.classified %}<li><span>{{ a.title }}</span><span class="tag">{{ a.classified }}/{{ a.available }} · {{ a.precision }} %</span></li>{% endif %}{% empty %}<li class="muted">Ninguno</li>{% endfor %}</ul></div>
+  <div class="card"><h2>📐 Casos de uso</h2>
+    <ul class="item-list">{% for uc in use_cases %}<li><span>{{ uc.name }}</span><span class="tag ok">✔ con diagrama</span></li>{% empty %}<li class="muted">Ninguno</li>{% endfor %}</ul></div>
+  <div class="card"><h2>🔍 Inspecciones</h2>
+    <ul class="item-list">{% for i in inspections %}<li><span>{{ i.title }}</span><span class="tag">{{ i.found }}/{{ i.total }} · {{ i.precision }} %</span></li>{% empty %}<li class="muted">Ninguna concluida</li>{% endfor %}</ul></div>
+</div>
+<p class="small muted" style="margin-top:1rem">El archivo se descargará como <code>IngeniaLab_Reporte_[ID].pdf</code>.</p>
+{% endif %}
+{% endblock %}

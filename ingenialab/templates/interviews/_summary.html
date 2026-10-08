@@ -1,0 +1,34 @@
+<div class="card result-card">
+  <p class="small muted" style="margin:0">Resultado de la entrevista</p>
+  <div class="result-score"><b>{{ summary.score }}</b> / {{ summary.max_points }} pts</div>
+  <div class="bar" role="progressbar" aria-label="Puntaje" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ summary.percent }}"><span style="width:{{ summary.percent }}%"></span></div>
+  <h2 style="margin-top:.8rem">{{ summary.rating }}</h2>
+  <p class="small">{{ summary.rating_text }}</p>
+  <div class="q-counts">
+    <span class="tag ok">🟢 Muy útiles: {{ summary.counts.high }}</span>
+    <span class="tag hint">🟡 Algo útiles: {{ summary.counts.medium }}</span>
+    <span class="tag bad">🔴 No aportan: {{ summary.counts.low }}</span>
+  </div>
+  {% if summary.premature %}<p class="small muted" style="margin-top:.6rem">Terminaste con {{ summary.asked }} de {{ summary.max_questions }} preguntas; las rondas no usadas no sumaron puntos.</p>{% endif %}
+  <div class="btn-row" style="margin-top:1rem">
+    <form method="post" action="{% url 'interviews:start' attempt.version.id %}">{% csrf_token %}<button class="btn" type="submit">↺ Repetir entrevista</button></form>
+    <a class="btn ghost" href="{% url 'interviews:scenarios' %}">Otros escenarios</a>
+  </div>
+</div>
+<div class="card">
+  <h2>Revisión de tus preguntas</h2>
+  <ol class="review">
+    {% for r in summary.review %}
+    <li class="review-item q-{{ r.quality }}">
+      <div class="review-head">
+        <span class="small muted">{{ r.topic }}</span>
+        <span class="tag {% if r.quality == 'high' %}ok{% elif r.quality == 'medium' %}hint{% else %}bad{% endif %}">
+          {% if r.quality == 'high' %}🟢{% elif r.quality == 'medium' %}🟡{% else %}🔴{% endif %} {{ r.label }} · +{{ r.points }}</span>
+      </div>
+      <div class="review-q">«{{ r.question }}»</div>
+      <div class="small">{{ r.rationale }}</div>
+      {% if r.best %}<div class="review-best small">💡 Mejor opción: «{{ r.best }}»</div>{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+</div>

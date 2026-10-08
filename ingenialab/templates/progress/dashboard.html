@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Mi progreso{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Hola, {{ user.first_name|default:user.username }}</h1>
+    <p class="muted">Continúa donde te quedaste o inicia una nueva práctica.</p>
+  </div>
+</div>
+
+<div class="grid-2 wide-left">
+  <div>
+    <div class="card level-card">
+      <div style="display:flex;gap:1.2rem;align-items:center">
+        <div class="level-number">{{ level.number }}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:1.1rem">{{ level.name }}</div>
+          <div class="bar" style="margin:.5rem 0" role="progressbar" aria-valuenow="{{ level.percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Avance de nivel"><span style="width:{{ level.percent }}%"></span></div>
+          <div class="small">{{ points }} puntos acumulados{% if level.next_at %} · {{ level.next_at }} para el siguiente nivel{% else %} · ¡Nivel máximo!{% endif %}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Retomar trabajo</h2></div>
+      {% if not open_interviews and not classifying and not open_inspections %}
+        <p class="empty">Aún no tienes prácticas. Comienza con una <a href="{% url 'interviews:scenarios' %}">entrevista</a>.</p>
+      {% endif %}
+      <ul class="item-list">
+        {% for a in open_interviews %}
+        <li><div><span class="tag hint">Entrevista en curso</span> {{ a.version.title }}<div class="small muted">Iniciada {{ a.started_at|date:"d/m/Y H:i" }}</div></div>
+          <a class="btn small" href="{% url 'interviews:interview' a.id %}">Reanudar</a></li>
+        {% endfor %}
+        {% for a in classifying %}
+        <li><div><span class="tag rf">Clasificación</span> {{ a.version.title }}<div class="small muted">Precisión {{ a.classification_precision }} % · {{ a.total_score }} pts</div></div>
+          <a class="btn small secondary" href="{% url 'classification:classify' a.id %}">Abrir</a></li>
+        {% endfor %}
+        {% for i in open_inspections %}
+        <li><div><span class="tag hint">Inspección en curso</span> {{ i.exercise.title }}</div>
+          <a class="btn small" href="{% url 'inspection:inspect' i.id %}">Reanudar</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Casos de uso recientes</h2><a class="btn small secondary" href="{% url 'modeling:list' %}">Ver todos</a></div>
+      <ul class="item-list">
+        {% for uc in use_cases %}
+        <li><span>📐 {{ uc.name }}</span><a class="btn small ghost" href="{% url 'modeling:edit' uc.id %}">Editar</a></li>
+        {% empty %}<li class="muted">Sin casos de uso guardados.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-head"><h2>Insignias formativas</h2></div>
+      <div class="badges">
+        {% for b in badges %}
+        <div class="badge{% if not b.owned %} locked{% endif %}" title="{{ b.description }}">
+          <div class="b-icon" aria-hidden="true">{{ b.icon }}</div>
+          <div class="b-name">{{ b.name }}</div>
+          <div class="small muted">{% if b.owned %}Obtenida{% else %}Bloqueada{% endif %}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="small muted" style="margin-top:.75rem">Las insignias y puntos son formativos y no representan una calificación oficial.</p>
+    </div>
+    {% if done_inspections %}
+    <div class="card">
+      <h2>Inspecciones concluidas</h2>
+      <ul class="item-list">
+        {% for i in done_inspections %}
+        <li><span>{{ i.exercise.title }}</span><span class="tag ok">{{ i.precision }} % · {{ i.score }} pts</span></li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

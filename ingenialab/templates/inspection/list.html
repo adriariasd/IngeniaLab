@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Inspección{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Inspección de calidad</h1><p class="muted">Revisa artefactos con defectos controlados, identifícalos y tipifícalos.</p></div></div>
+<div class="instructions">
+  <b>Puntuación:</b> +10 por defecto correcto, −3 por registro erróneo, −5 por pista. La precisión es aciertos ÷ registros realizados.
+</div>
+<div class="grid-3" style="margin-bottom:1.5rem">
+  {% for ex in exercises %}
+  <div class="card">
+    <h3>{{ ex.title }}</h3>
+    <p class="small">{{ ex.description }}</p>
+    <p class="small muted">{{ ex.code }} · {{ ex.fragments.count }} secciones</p>
+    <form method="post" action="{% url 'inspection:start' ex.id %}">{% csrf_token %}<button class="btn" type="submit">Iniciar inspección</button></form>
+  </div>
+  {% endfor %}
+</div>
+<div class="card">
+  <h2>Mis inspecciones</h2>
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>Ejercicio</th><th>Fecha</th><th>Estado</th><th>Precisión</th><th>Puntos</th><th></th></tr></thead>
+    <tbody>
+    {% for a in attempts %}
+    <tr><td>{{ a.exercise.title }}</td><td>{{ a.started_at|date:"d/m/Y H:i" }}</td>
+      <td>{% if a.is_concluded %}<span class="tag ok">✔ Concluida</span>{% else %}<span class="tag hint">En curso</span>{% endif %}</td>
+      <td>{% if a.is_concluded %}{{ a.precision }} %{% else %}—{% endif %}</td><td>{% if a.is_concluded %}{{ a.score }}{% else %}—{% endif %}</td>
+      <td><a class="btn small secondary" href="{% url 'inspection:inspect' a.id %}">{% if a.is_concluded %}Ver{% else %}Reanudar{% endif %}</a></td></tr>
+    {% empty %}<tr><td colspan="6" class="muted">Sin inspecciones todavía.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endblock %}

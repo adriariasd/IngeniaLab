@@ -1,0 +1,42 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}IngeniaLab{% endblock %} · IngeniaLab</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+{% with url=request.resolver_match.namespace %}
+<div class="layout">
+  <aside class="sidebar">
+    <a class="brand" href="{% url 'interviews:scenarios' %}"><span class="brand-mark">IL</span> IngeniaLab</a>
+    <nav class="nav" aria-label="Módulos">
+      {% if "progress" in modules %}<a href="{% url 'progress:dashboard' %}" class="{% if url == 'progress' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><span aria-hidden="true">🏠</span> Mi progreso</a>{% endif %}
+      <div class="nav-section">Prácticas</div>
+      <a href="{% url 'interviews:scenarios' %}" class="{% if url == 'interviews' or url == 'classification' %}active{% endif %}"><span aria-hidden="true">💬</span> Entrevistas</a>
+      {% if "modeling" in modules %}<a href="{% url 'modeling:list' %}" class="{% if url == 'modeling' %}active{% endif %}"><span aria-hidden="true">📐</span> Modelado</a>{% endif %}
+      {% if "inspection" in modules %}<a href="{% url 'inspection:list' %}" class="{% if url == 'inspection' %}active{% endif %}"><span aria-hidden="true">🔍</span> Inspección</a>{% endif %}
+      {% if "reports" in modules %}<div class="nav-section">Entregables</div>
+      <a href="{% url 'progress:reports' %}" class="{% if request.resolver_match.url_name == 'reports' %}active{% endif %}"><span aria-hidden="true">📄</span> Reportes</a>{% endif %}
+    </nav>
+    {% if nav_level %}<div class="side-progress">
+      <div><b>Nivel {{ nav_level.number }}</b> · {{ nav_level.name }}</div>
+      <div class="bar" style="margin:.45rem 0" role="progressbar" aria-valuenow="{{ nav_level.percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="Avance al siguiente nivel"><span style="width: {{ nav_level.percent }}%"></span></div>
+      <div>{{ nav_points }} puntos{% if nav_level.next_at %} · siguiente nivel en {{ nav_level.next_at }}{% endif %}</div>
+    </div>{% endif %}
+    <div class="side-user"{% if not nav_level %} style="margin-top:auto"{% endif %}>
+      <span>{{ user.first_name|default:user.username }}</span>
+      <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}<button type="submit">Salir</button></form>
+    </div>
+  </aside>
+  <main class="main" id="contenido">
+    {% if messages %}<div class="messages">{% for m in messages %}<div class="message {{ m.tags }}" role="status">{{ m }}</div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endwith %}
+<script src="{% static 'js/app.js' %}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

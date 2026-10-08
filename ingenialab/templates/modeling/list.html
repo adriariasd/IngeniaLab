@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Modelado{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Modelado de casos de uso</h1><p class="muted">Estructura casos de uso con una plantilla guiada y genera su diagrama UML con PlantUML.</p></div>
+  {% if can_model %}<a class="btn" href="{% url 'modeling:new' %}">+ Nuevo caso de uso</a>{% endif %}
+</div>
+{% if not can_model %}
+<div class="card"><p class="empty">🔒 Para modelar casos de uso primero completa al menos una entrevista en <a href="{% url 'interviews:scenarios' %}">Elicitación</a>.</p></div>
+{% else %}
+<div class="card">
+  <div class="table-wrap"><table class="data">
+    <thead><tr><th>Caso de uso</th><th>Sistema</th><th>Actores</th><th>Actualizado</th><th></th></tr></thead>
+    <tbody>
+    {% for uc in use_cases %}
+      <tr><td><b>{{ uc.name }}</b></td><td>{{ uc.system_name }}</td><td>{{ uc.actors.primary|join:", " }}</td><td>{{ uc.updated_at|date:"d/m/Y H:i" }}</td>
+        <td class="btn-row"><a class="btn small secondary" href="{% url 'modeling:edit' uc.id %}">Editar</a>
+          <form method="post" action="{% url 'modeling:delete' uc.id %}" class="js-delete">{% csrf_token %}<button class="btn small danger" type="submit">Eliminar</button></form></td></tr>
+    {% empty %}<tr><td colspan="5" class="muted">Aún no tienes casos de uso. Crea el primero.</td></tr>{% endfor %}
+    </tbody>
+  </table></div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+document.querySelectorAll(".js-delete").forEach((f) => f.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (await IL.confirmModal("Eliminar caso de uso", "Esta acción no se puede deshacer. ¿Deseas continuar?", "Eliminar")) f.submit();
+}));
+</script>
+{% endblock %}

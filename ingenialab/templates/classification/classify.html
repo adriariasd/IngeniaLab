@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Clasificación · {{ attempt.version.title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="small muted" style="margin:0">Elicitación · Paso 2 de 2</p>
+    <h1>Clasificación de requisitos</h1>
+    <p class="muted" style="margin:0">{{ attempt.version.title }} · {{ attempt.version.client_name }}</p>
+  </div>
+  <div class="metrics" aria-live="polite">
+    <div class="metric"><b id="m-precision">{{ attempt.classification_precision }} %</b><span>Precisión</span></div>
+    <div class="metric"><b id="m-progress">{{ rows|length }} / {{ available }}</b><span>Clasificadas</span></div>
+    <div class="metric"><b id="m-score">{{ attempt.total_score }}</b><span>Puntos del escenario</span></div>
+  </div>
+</div>
+<div class="instructions">
+  <ol>
+    <li>Haz clic (o selecciona con el cursor) una <span class="stmt" style="cursor:default">declaración subrayada</span> de la bitácora.</li>
+    <li>Elige si es <b>RF</b> (lo que el sistema hace) o <b>RNF</b> (una cualidad o restricción de cómo lo hace) y confirma.</li>
+    <li>Para corregir, vuelve a seleccionar la declaración o su fila en la tabla: se reclasifica sin duplicarse.</li>
+  </ol>
+  {% if attempt.premature_finish %}<p class="small" style="margin:.4rem 0 0">⚠ La entrevista se finalizó con temas pendientes: solo puedes clasificar lo que quedó en la bitácora.</p>{% endif %}
+</div>
+
+<div class="grid-2 wide-left">
+  <section class="card" aria-labelledby="bitacora">
+    <h2 id="bitacora">Bitácora de la entrevista</h2>
+    <div id="log">
+      {% for e in entries %}
+      <div class="log-entry">
+        <div class="log-q">❓ {{ e.question }}</div>
+        <div>{% for s in e.segments %}{% if s.req_id %}<span class="stmt" tabindex="0" role="button" data-req="{{ s.req_id }}">{{ s.text }}</span>{% else %}<span>{{ s.text }}</span>{% endif %} {% endfor %}</div>
+      </div>
+      {% empty %}<p class="empty">La bitácora está vacía.</p>{% endfor %}
+    </div>
+  </section>
+
+  <div>
+    <section class="card sticky" aria-labelledby="clasificar">
+      <h2 id="clasificar">Clasificar declaración</h2>
+      <div class="selection-box" id="selection">Ninguna declaración seleccionada.</div>
+      <fieldset style="border:0;padding:0;margin:0">
+        <legend class="small muted">Tipo de requisito</legend>
+        <div class="radio-group">
+          <label class="radio-card"><input type="radio" name="category" value="RF"> <span>RF<small>Funcional: qué hace el sistema</small></span></label>
+          <label class="radio-card"><input type="radio" name="category" value="RNF"> <span>RNF<small>No funcional: cualidad o restricción</small></span></label>
+        </div>
+      </fieldset>
+      <div class="btn-row">
+        <button class="btn" type="button" id="btn-confirm">Confirmar clasificación</button>
+        <button class="btn ghost" type="button" id="btn-hint">💡 Solicitar pista (−3 pts)</button>
+      </div>
+      <div id="feedback" aria-live="polite"></div>
+    </section>
+
+    <section class="card">
+      <h2>Requisitos clasificados</h2>
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Declaración</th><th>Tipo</th><th>Resultado</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table></div>
+      <div class="btn-row" style="margin-top:1rem">
+        <a class="btn secondary" href="{% url 'modeling:new' %}">Modelar casos de uso →</a>
+        <a class="btn ghost" href="{% url 'progress:reports' %}">Exportar reporte</a>
+      </div>
+    </section>
+  </div>
+</div>
+{{ rows|json_script:"rows-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const BASE = "/clasificacion/api/intento/{{ attempt.id }}/";
+  const AVAILABLE = {{ available }};
+  const INTERVIEW_SCORE = {{ attempt.interview_score }};
+  let selected = null;
+  const stmts = document.querySelectorAll(".stmt[data-req]");
+
+  function renderRows(rows) {
+    const tbody = document.getElementById("rows");
+    tbody.innerHTML = rows.length ? "" : '<tr><td colspan="3" class="muted">Aún no has clasificado declaraciones.</td></tr>';
+    const byReq = {};
+    rows.forEach((r) => {
+      byReq[r.req_id] = r;
+      const tr = document.createElement("tr");
+      tr.className = "clickable";
+      tr.tabIndex = 0;
+      tr.title = "Seleccionar para reclasificar";
+      tr.innerHTML = `<td>${IL.esc(r.statement)}</td><td><span class="tag ${r.category.toLowerCase()}">${r.category}</span></td>` +
+        `<td>${r.is_correct ? '<span class="tag ok">✔ Correcto</span>' : '<span class="tag bad">✖ Inconsistente</span>'}</td>`;
+      const pick = () => select(document.querySelector(`.stmt[data-req="${r.req_id}"]`));
+      tr.addEventListener("click", pick);
+      tr.addEventListener("keydown", (e) => { if (e.key === "Enter") pick(); });
+      tbody.append(tr);
+    });
+    stmts.forEach((s) => {
+      s.classList.remove("done-ok", "done-bad");
+      const r = byReq[s.dataset.req];
+      if (r) s.classList.add(r.is_correct ? "done-ok" : "done-bad");
+    });
+    document.getElementById("m-progress").textContent = `${rows.length} / ${AVAILABLE}`;
+    return byReq;
+  }
+  let byReq = renderRows(JSON.parse(document.getElementById("rows-data").textContent));
+
+  function select(span) {
+    if (!span) return;
+    stmts.forEach((s) => s.classList.remove("selected"));
+    span.classList.add("selected");
+    selected = span.dataset.req;
+    document.getElementById("selection").textContent = "«" + span.textContent + "»";
+    document.querySelectorAll('input[name="category"]').forEach((i) => (i.checked = byReq[selected] && byReq[selected].category === i.value));
+    document.getElementById("feedback").innerHTML = byReq[selected]
+      ? IL.feedback("hint", "Ya clasificada como " + byReq[selected].category + ".", " Puedes cambiar el tipo y confirmar para reclasificar.") : "";
+  }
+  stmts.forEach((s) => {
+    s.addEventListener("click", () => select(s));
+    s.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(s); } });
+  });
+  // Selección con el cursor: si el texto resaltado cae dentro de una declaración, la toma.
+  document.getElementById("log").addEventListener("mouseup", () => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    const node = sel.anchorNode && (sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode);
+    const span = node && node.closest(".stmt[data-req]");
+    if (span) select(span);
+  });
+
+  document.getElementById("btn-confirm").addEventListener("click", async () => {
+    const fb = document.getElementById("feedback");
+    const cat = document.querySelector('input[name="category"]:checked');
+    if (!selected) { fb.innerHTML = IL.feedback("bad", "Primero selecciona una declaración de la bitácora."); return; }
+    if (!cat) { fb.innerHTML = IL.feedback("bad", "Debe seleccionar una clasificación válida (RF o RNF) para registrar el requisito."); return; }
+    const r = await IL.api(BASE + "clasificar/", { requirement_id: selected, category: cat.value });
+    if (!r.ok) { fb.innerHTML = IL.feedback("bad", r.message); return; }
+    fb.innerHTML = IL.feedback(r.is_correct ? "ok" : "bad",
+      (r.is_correct ? "Correcto" : "Inconsistencia detectada") + (r.reclassified ? " (reclasificado)" : "") + ".", " " + r.explanation);
+    byReq = renderRows(r.rows);
+    document.getElementById("m-precision").textContent = r.precision + " %";
+    document.getElementById("m-score").textContent = INTERVIEW_SCORE + r.score;
+    IL.showBadges(r.badges);
+  });
+
+  document.getElementById("btn-hint").addEventListener("click", async () => {
+    if (!selected) { document.getElementById("feedback").innerHTML = IL.feedback("bad", "Selecciona una declaración para pedir una pista sobre ella."); return; }
+    const r = await IL.api(BASE + "pista/", { requirement_id: selected });
+    if (!r.ok) return IL.toast(r.message, "bad");
+    document.getElementById("feedback").innerHTML = IL.feedback("hint", "Pista (−3 puntos):", " " + r.hint);
+    document.getElementById("m-score").textContent = INTERVIEW_SCORE + r.score;
+  });
+})();
+</script>
+{% endblock %}

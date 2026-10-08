@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Entrevista · {{ attempt.version.title }}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
+<div class="chat-layout">
+  <section class="wa" aria-label="Conversación con {{ attempt.version.client_name }}">
+    <header class="wa-head">
+      <a class="wa-back" href="{% url 'interviews:scenarios' %}" aria-label="Volver a entrevistas">←</a>
+      <div class="wa-avatar" aria-hidden="true">{{ attempt.version.client_initials }}</div>
+      <div class="wa-contact">
+        <div class="wa-name">{{ attempt.version.client_name }}</div>
+        <div class="wa-status" id="wa-status">{% if finished %}{{ attempt.version.client_role }}{% else %}en línea{% endif %}</div>
+      </div>
+      {% if not finished %}
+      <div class="wa-actions">
+        <button type="button" class="wa-icon" id="btn-reset" title="Reiniciar entrevista" aria-label="Reiniciar entrevista">↺</button>
+        <button type="button" class="wa-end" id="btn-finish">Terminar</button>
+      </div>
+      {% endif %}
+    </header>
+
+    <div class="wa-body" id="chat" aria-live="polite">
+      <div class="wa-day"><span>HOY</span></div>
+      <div class="wa-notice">🔒 Simulación didáctica de IngeniaLab. Elige una de las 3 preguntas sugeridas en cada turno (máximo {{ progress.max }}).</div>
+      <div class="msg in"><div class="bubble">{{ attempt.version.client_greeting }}<span class="meta">{{ attempt.started_at|time:"H:i" }}</span></div></div>
+    </div>
+
+    <footer class="wa-foot" id="foot">
+      {% if finished %}
+        <div class="wa-closed">✔ Entrevista finalizada · {{ summary.asked }} de {{ summary.max_questions }} preguntas</div>
+      {% else %}
+        <div class="wa-counter"><span>Pregunta <b id="q-num">{{ progress.asked|add:1 }}</b> de {{ progress.max }}</span><span class="muted">Elige una pregunta</span></div>
+        <div class="wa-options" id="options" role="group" aria-label="Preguntas sugeridas"></div>
+      {% endif %}
+    </footer>
+  </section>
+
+  <aside class="chat-side" id="side">
+    {% if finished %}
+      {% include "interviews/_summary.html" %}
+    {% else %}
+    <div class="card">
+      <h2>{{ attempt.version.title }}</h2>
+      <p class="small muted">{{ attempt.version.client_name }} · {{ attempt.version.client_role }}</p>
+      <p class="small">{{ attempt.version.summary }}</p>
+      <div class="instructions" style="margin:0">
+        <b>¿Cómo funciona?</b>
+        <ol>
+          <li>En cada turno verás 3 preguntas: una <b>muy útil</b>, una <b>más o menos útil</b> y una que <b>no aporta</b>.</li>
+          <li>Elige la que te ayude a descubrir más requisitos del sistema.</li>
+          <li>Tienes hasta {{ progress.max }} preguntas. Al final verás tu puntaje y por qué cada pregunta era buena o no.</li>
+        </ol>
+      </div>
+      <div style="margin-top:1rem">
+        <div class="small" style="display:flex;justify-content:space-between"><span>Avance</span><b id="prog-text">{{ progress.asked }} / {{ progress.max }}</b></div>
+        <div class="bar" role="progressbar" aria-label="Preguntas realizadas" aria-valuemin="0" aria-valuemax="{{ progress.max }}" aria-valuenow="{{ progress.asked }}" id="prog-bar"><span style="width:0%"></span></div>
+      </div>
+    </div>
+    {% endif %}
+  </aside>
+</div>
+{{ entries|json_script:"entries-data" }}
+{{ options|json_script:"options-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const BASE = "/elicitacion/api/intento/{{ attempt.id }}/";
+  const MAX = {{ progress.max }};
+  const chat = document.getElementById("chat");
+  const statusEl = document.getElementById("wa-status");
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const now = () => new Date().toTimeString().slice(0, 5);
+
+  function bubble(dir, text, time) {
+    const ticks = dir === "out" ? '<span class="ticks" aria-label="leído">✓✓</span>' : "";
+    chat.insertAdjacentHTML("beforeend",
+      `<div class="msg ${dir}"><div class="bubble">${IL.esc(text)}<span class="meta">${time}${ticks}</span></div></div>`);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // Historial (al reanudar la entrevista).
+  JSON.parse(document.getElementById("entries-data").textContent).forEach((e) => {
+    bubble("out", e.question, e.time);
+    e.segments.forEach((s) => bubble("in", s.text, e.time));
+  });
+
+  const optionsBox = document.getElementById("options");
+  if (!optionsBox) return;  // entrevista finalizada
+
+  function setProgress(asked) {
+    document.getElementById("prog-text").textContent = `${asked} / ${MAX}`;
+    const bar = document.getElementById("prog-bar");
+    bar.setAttribute("aria-valuenow", asked);
+    bar.querySelector("span").style.width = (100 * asked / MAX) + "%";
+    const num = document.getElementById("q-num");
+    if (num) num.textContent = Math.min(asked + 1, MAX);
+  }
+  setProgress({{ progress.asked }});
+
+  function renderOptions(options) {
+    optionsBox.innerHTML = "";
+    options.forEach((o, i) => {
+      const b = IL.el("button", { type: "button", class: "wa-option" }, [
+        IL.el("span", { class: "wa-opt-letter", text: "ABC"[i] }), IL.el("span", { text: o.text })]);
+      b.addEventListener("click", () => ask(o));
+      optionsBox.append(b);
+    });
+  }
+
+  function setBusy(busy) {
+    optionsBox.querySelectorAll("button").forEach((b) => (b.disabled = busy));
+    document.querySelectorAll("#btn-finish, #btn-reset").forEach((b) => (b.disabled = busy));
+  }
+
+  async function typing(text) {
+    statusEl.textContent = "escribiendo…";
+    chat.insertAdjacentHTML("beforeend", '<div class="msg in" id="typing"><div class="bubble typing"><i></i><i></i><i></i></div></div>');
+    chat.scrollTop = chat.scrollHeight;
+    await sleep(Math.min(600 + text.length * 18, 1600));
+    document.getElementById("typing").remove();
+    statusEl.textContent = "en línea";
+  }
+
+  async function ask(option) {
+    setBusy(true);
+    bubble("out", option.text, now());
+    const request = IL.api(BASE + "preguntar/", { question_id: option.id });
+    optionsBox.innerHTML = "";
+    const r = await request;
+    if (!r.ok) { IL.toast(r.message, "bad"); window.location.reload(); return; }
+    for (const s of r.entry.segments) {
+      await typing(s.text);
+      bubble("in", s.text, r.entry.time);
+    }
+    setProgress(r.progress.asked);
+    if (r.finished) return showFinished(r);
+    renderOptions(r.options);
+    setBusy(false);
+  }
+
+  function showFinished(r) {
+    IL.showBadges(r.badges);
+    chat.insertAdjacentHTML("beforeend", '<div class="wa-notice">La entrevista terminó. Revisa tus resultados →</div>');
+    chat.scrollTop = chat.scrollHeight;
+    // Recarga para mostrar el resumen renderizado en el servidor.
+    setTimeout(() => window.location.reload(), 1200);
+  }
+
+  renderOptions(JSON.parse(document.getElementById("options-data").textContent));
+
+  async function finish(confirm) {
+    const r = await IL.api(BASE + "finalizar/", { confirm });
+    if (!r.ok) return IL.toast(r.message, "bad");
+    if (r.needs_confirmation) {
+      if (await IL.confirmModal("¿Terminar la entrevista?", r.message, "Terminar", "Seguir preguntando")) finish(true);
+      return;
+    }
+    showFinished(r);
+  }
+  document.getElementById("btn-finish").addEventListener("click", () => finish(false));
+
+  document.getElementById("btn-reset").addEventListener("click", async () => {
+    if (!(await IL.confirmModal("Reiniciar entrevista", "¿Desea borrar la conversación actual y reiniciar el escenario?", "Sí, reiniciar"))) return;
+    const r = await IL.api(BASE + "reiniciar/");
+    if (!r.ok) return IL.toast(r.message, "bad");
+    window.location.reload();
+  });
+})();
+</script>
+{% endblock %}

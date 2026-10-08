@@ -1,0 +1,149 @@
+{
+  "inspections": [
+    {
+      "code": "INS-CONTROL-ESCOLAR-01",
+      "title": "SRS del Sistema de Control Escolar (extracto)",
+      "description": "Extracto de una especificación de requisitos con defectos de redacción y conceptuales. Encuentra y tipifica cada defecto.",
+      "fragments": [
+        {
+          "label": "RF-01",
+          "text": "El sistema deberá permitir al coordinador registrar alumnos con nombre, matrícula, carrera y correo institucional.",
+          "defect": "",
+          "explanation": "Este requisito es correcto: identifica al actor, la acción y los datos necesarios, y es verificable."
+        },
+        {
+          "label": "RF-02",
+          "text": "El sistema deberá notificar al alumno y a su tutor cuando reprueba una materia.",
+          "defect": "ambiguity",
+          "explanation": "Ambigüedad: no queda claro quién «reprueba» (¿el alumno o el tutor?) ni por qué medio se notifica. Admite más de una interpretación.",
+          "hint": "Lee la oración e intenta interpretarla de dos formas distintas."
+        },
+        {
+          "label": "RF-03",
+          "text": "Las calificaciones se capturarán en una escala numérica de 0 a 10, con un decimal.",
+          "defect": "",
+          "explanation": "Correcto: define con precisión el dominio de valores, por lo que es verificable."
+        },
+        {
+          "label": "RF-04",
+          "text": "El docente podrá capturar calificaciones hasta cinco días hábiles después del cierre del periodo.",
+          "defect": "",
+          "explanation": "Por sí solo es correcto y verificable. Compáralo con los demás requisitos del documento."
+        },
+        {
+          "label": "RF-05",
+          "text": "El sistema deberá generar la boleta de calificaciones del alumno en formato PDF.",
+          "defect": "",
+          "explanation": "Correcto: describe una salida concreta y verificable."
+        },
+        {
+          "label": "RF-06",
+          "text": "El sistema generará la boleta de calificaciones de cada alumno en PDF.",
+          "defect": "redundancy",
+          "explanation": "Redundancia: repite el contenido de RF-05. Duplicar requisitos dificulta el mantenimiento y la trazabilidad.",
+          "hint": "¿Ya leíste algo muy parecido en otra sección?"
+        },
+        {
+          "label": "RF-07",
+          "text": "Ninguna calificación podrá capturarse después de la fecha de cierre del periodo.",
+          "defect": "inconsistency",
+          "explanation": "Inconsistencia: contradice a RF-04, que permite capturar hasta cinco días hábiles después del cierre. Ambos no pueden cumplirse a la vez.",
+          "hint": "Compara esta regla con otra que hable de las fechas de captura."
+        },
+        {
+          "label": "RF-08",
+          "text": "El sistema deberá almacenar la información en una base de datos MySQL 8 con tablas en tercera forma normal.",
+          "defect": "design",
+          "explanation": "Imposición de diseño: dicta una solución técnica (manejador y normalización) en lugar de expresar la necesidad del usuario. Pertenece al diseño, no a los requisitos.",
+          "hint": "¿Describe QUÉ necesita el usuario o CÓMO se construirá?"
+        },
+        {
+          "label": "RF-09",
+          "text": "El sistema deberá calcular el promedio general del alumno. Las reglas para materias reprobadas se definirán más adelante.",
+          "defect": "incomplete",
+          "explanation": "Omisión / incompletitud: deja información pendiente («se definirán más adelante»), por lo que no puede implementarse ni probarse por completo.",
+          "hint": "¿Tienes toda la información necesaria para programarlo hoy?"
+        },
+        {
+          "label": "RNF-01",
+          "text": "La interfaz deberá ser amigable y agradable para todos los usuarios.",
+          "defect": "unverifiable",
+          "explanation": "No verificable: «amigable» y «agradable» son subjetivos y no tienen un criterio medible (p. ej., tiempo para completar una tarea o tasa de errores).",
+          "hint": "¿Cómo diseñarías una prueba que demuestre que se cumple?"
+        },
+        {
+          "label": "RNF-02",
+          "text": "El sistema deberá estar disponible el 99.5 % del tiempo entre las 7:00 y las 22:00 horas.",
+          "defect": "",
+          "explanation": "Correcto: es un requisito de disponibilidad con métrica y ventana de tiempo verificables."
+        }
+      ]
+    },
+    {
+      "code": "INS-CASO-USO-SALAS-01",
+      "title": "Caso de uso: Reservar Sala de Estudio",
+      "description": "Especificación de un caso de uso con defectos estructurales y de redacción.",
+      "fragments": [
+        {
+          "label": "Nombre",
+          "text": "Reservar sala de estudio.",
+          "defect": "",
+          "explanation": "Correcto: nombre en infinitivo que expresa el objetivo del actor."
+        },
+        {
+          "label": "Actores",
+          "text": "Actor principal: Estudiante. Actor secundario: el propio Sistema de Reservas.",
+          "defect": "inconsistency",
+          "explanation": "Inconsistencia conceptual: el sistema que se está modelando no puede ser actor de sí mismo; los actores son externos al sistema.",
+          "hint": "Recuerda la definición de actor: ¿dónde está ubicado respecto al sistema?"
+        },
+        {
+          "label": "Precondición",
+          "text": "El estudiante ha iniciado sesión en el portal universitario.",
+          "defect": "",
+          "explanation": "Correcto: es una condición verificable que debe cumplirse antes de iniciar."
+        },
+        {
+          "label": "Paso 1",
+          "text": "El estudiante selecciona la fecha y el horario deseados.",
+          "defect": "",
+          "explanation": "Correcto: acción clara del actor."
+        },
+        {
+          "label": "Paso 2",
+          "text": "El sistema muestra las salas disponibles de forma rápida y eficiente.",
+          "defect": "unverifiable",
+          "explanation": "No verificable: «rápida y eficiente» no tiene criterio medible. Si importa el tiempo, debe expresarse como RNF con métrica.",
+          "hint": "¿Qué valor numérico usarías para aprobar o rechazar este paso?"
+        },
+        {
+          "label": "Paso 3",
+          "text": "El estudiante elige una sala y el sistema ejecuta un INSERT en la tabla RESERVAS.",
+          "defect": "design",
+          "explanation": "Imposición de diseño: un caso de uso describe la interacción observable, no detalles de implementación como sentencias SQL o tablas.",
+          "hint": "¿El estudiante percibe o le importa este detalle?"
+        },
+        {
+          "label": "Paso 4",
+          "text": "El sistema confirma la reserva y muestra el número de folio.",
+          "defect": "",
+          "explanation": "Correcto: reacción observable del sistema."
+        },
+        {
+          "label": "Flujo alterno",
+          "text": "FA-1: Si no hay salas disponibles en el horario elegido…",
+          "defect": "incomplete",
+          "explanation": "Omisión / incompletitud: el flujo alterno no indica qué hace el sistema ni cómo continúa o termina el caso de uso.",
+          "hint": "Lee el flujo alterno hasta el final: ¿sabes qué pasa después?"
+        },
+        {
+          "label": "Postcondición",
+          "text": "La reserva queda registrada. La reserva queda guardada en el sistema.",
+          "defect": "redundancy",
+          "explanation": "Redundancia: ambas oraciones expresan lo mismo; basta con una postcondición clara.",
+          "hint": "¿Las dos oraciones aportan información distinta?"
+        }
+      ]
+    }
+  ]
+}
