@@ -14,6 +14,7 @@ cd ingenialab
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 # PlantUML (si no existe vendor/plantuml.jar)
+mkdir -p vendor
 curl -L -o vendor/plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar
 .venv/bin/python manage.py migrate
 .venv/bin/python manage.py seed_ingenialab        # escenarios e inspecciones (idempotente)
@@ -21,7 +22,7 @@ curl -L -o vendor/plantuml.jar https://github.com/plantuml/plantuml/releases/dow
 ```
 
 Abre http://127.0.0.1:8000, regístrate como estudiante y comienza en **Elicitación**.
-La base de datos de desarrollo incluida trae un usuario de demostración: `demo` / `demo12345`.
+Para entrar al panel `/admin`, crea un superusuario con `.venv/bin/python manage.py createsuperuser`.
 
 Pruebas automatizadas (evidencia para VR-01):
 
