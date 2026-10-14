@@ -178,6 +178,7 @@ avance del proyecto
 - [ ] Mi rama está actualizada con los cambios recientes de `it-N`.
 - [ ] El proyecto arranca sin errores con `python manage.py runserver`.
 - [ ] Las pruebas pasan con `python manage.py test apps`.
+- [ ] El check de **CI** del Pull Request está en verde (GitHub lo ejecuta automáticamente).
 - [ ] Si modifiqué modelos, incluí las migraciones (`python manage.py makemigrations`).
 - [ ] Revisé `git status` y no incluyo archivos locales, secretos ni generados (`.venv/`, `db.sqlite3`, `var/`, `vendor/*.jar`).
 - [ ] Mis commits tienen mensajes claros y siguen la convención.
