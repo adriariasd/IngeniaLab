@@ -1,5 +1,7 @@
 # IngeniaLab
 
+[![CI](https://github.com/adriariasd/IngeniaLab/actions/workflows/ci.yml/badge.svg)](https://github.com/adriariasd/IngeniaLab/actions/workflows/ci.yml)
+
 Plataforma web didáctica para practicar **elicitación, especificación (casos de uso + UML) e inspección de requisitos**.
 Proyecto del equipo **Byte Force** para la materia de Introducción a la Ingeniería de Software (UAZ), desarrollado conforme
 a ISO/IEC 29110-5-1-2:2025, Perfil Básico.
