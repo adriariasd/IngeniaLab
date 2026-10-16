@@ -87,23 +87,3 @@ def api_reset(request, attempt_id):
     except services.InterviewError as e:
         return fail(str(e))
     return ok(message="La bitácora se reinició. Puedes comenzar la entrevista de nuevo.")
-
-@login_required
-def chat_interface(request):
-    """Vista principal que carga la interfaz interactiva del catálogo (Chat/Mensajería)."""
-    return render(request, 'interviews/chat.html')
-
-@login_required
-def get_catalog_data(request):
-    """API endpoint que retorna el catálogo JSON de escenarios (catalog_cu01.json)."""
-    # Se asume que BASE_DIR llega hasta la raíz del proyecto y 'ingenialab' es la carpeta principal
-    # Ruta: ingenialab/data/catalog_cu01.json
-    file_path = os.path.join(settings.BASE_DIR, 'ingenialab', 'data', 'catalog_cu01.json')
-    
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-        return JsonResponse(data)
-    except FileNotFoundError:
-        # Usamos el formato fail de su API interna si no se encuentra el archivo
-        return JsonResponse({"error": "El archivo catalog_cu01.json no fue encontrado en la ruta especificada."}, status=404)
