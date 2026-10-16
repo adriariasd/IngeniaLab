@@ -12,17 +12,16 @@ motor de layout integrado de PlantUML (Smetana).
 ```bash
 cd ingenialab
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+carpeta_actual/.venv/bin/pip install -r requirements.txt
 # PlantUML (si no existe vendor/plantuml.jar)
-mkdir -p vendor
-curl -L -o vendor/plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar
+curl -L -o vendor/plantuml.jar https://github.com/plantuml/plantuml/releases/download/latest
 .venv/bin/python manage.py migrate
 .venv/bin/python manage.py seed_ingenialab        # escenarios e inspecciones (idempotente)
 .venv/bin/python manage.py runserver
 ```
 
 Abre http://127.0.0.1:8000, regístrate como estudiante y comienza en **Elicitación**.
-Para entrar al panel `/admin`, crea un superusuario con `.venv/bin/python manage.py createsuperuser`.
+La base de datos de desarrollo incluida trae un usuario de demostración: `demo` / `demo12345`.
 
 Pruebas automatizadas (evidencia para VR-01):
 
@@ -30,9 +29,9 @@ Pruebas automatizadas (evidencia para VR-01):
 .venv/bin/python manage.py test apps
 ```
 
-## Flujo del estudiante (piloto: solo entrevistas)
+## Flujo del estudiante (piloto: entrevistas y modelado)
 
-En esta versión solo está habilitado el módulo de **entrevistas (CU-01)**:
+Con ACT-207A están habilitados **entrevistas (CU-01)** y **modelado (CU-02)**. Para utilizar el formulario de modelado es necesario terminar al menos una entrevista:
 
 1. El estudiante elige un escenario y se abre un chat estilo mensajería con el cliente virtual.
 2. En cada turno se ofrecen **3 preguntas** en orden aleatorio: una muy útil (+10), una más o menos útil (+5)
@@ -41,7 +40,7 @@ En esta versión solo está habilitado el módulo de **entrevistas (CU-01)**:
 4. Al final se muestra el puntaje (máx. 90), una calificación formativa y la explicación de cada elección,
    con la mejor opción de cada ronda.
 
-Los demás módulos (clasificación, modelado, inspección, reportes y tablero de progreso) siguen en el código y se
+Los demás módulos (clasificación, inspección, reportes y tablero de progreso) siguen en el código y se
 reactivan con la variable de entorno:
 
 ```bash
@@ -117,3 +116,25 @@ Si Java o el JAR no están disponibles, el sistema usa un renderizador SVG de re
   es Python puro. La interfaz `build_report()` aísla el motor, por lo que puede cambiarse sin tocar las vistas.
 - **SQLite en desarrollo**, PostgreSQL en producción vía variables de entorno (mismo ORM y migraciones).
 - **Fuera de alcance (SRS §2):** panel docente, edición gráfica libre, modo offline y colaboración en tiempo real.
+
+## Actividad ACT-207A integrada
+
+El formulario de `apps/modeling/` utiliza Django Forms y validación JavaScript con los mismos límites.
+Abre **Modelado → Nuevo caso de uso** después de finalizar una entrevista. **Validar plantilla** comprueba
+los campos sin invocar PlantUML; generar y guardar utilizan el motor que ya incluía el proyecto.
+Se exige nombre, actor principal, precondiciones, postcondiciones y al menos dos pasos con texto.
+Los números 1..n se derivan del orden de la lista y se actualizan al agregar o quitar filas.
+
+Consulta `../ACT-207A_CAMBIOS.txt` para ver todos los archivos agregados/modificados, decisiones,
+instrucciones de instalación en Windows y las pruebas ejecutadas. No se requiere una migración nueva.
+
+Si tienes definida `INGENIALAB_MODULES`, incluye `modeling`; una variable previamente configurada
+sigue teniendo prioridad sobre el valor por defecto de esta entrega.
+
+Pruebas específicas:
+
+```bash
+python manage.py test apps.modeling
+# Opcional, solo si tienes Node.js: no requiere npm install
+node tests/modeling-validation.cjs
+```

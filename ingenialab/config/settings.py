@@ -114,10 +114,10 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = 31536000
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Módulos habilitados. Para el piloto solo la entrevista está activa; los demás pueden
+# ACT-207A: entrevistas y formulario de modelado habilitados por defecto; los demás pueden
 # reactivarse con, p. ej., INGENIALAB_MODULES=interviews,classification,modeling,inspection,reports,progress
 ALL_MODULES = ["interviews", "classification", "modeling", "inspection", "reports", "progress"]
-INGENIALAB_MODULES = [m for m in os.environ.get("INGENIALAB_MODULES", "interviews").split(",") if m]
+INGENIALAB_MODULES = [m for m in os.environ.get("INGENIALAB_MODULES", "interviews,modeling").split(",") if m]
 
 # SCI-05: integración PlantUML (SDS §3.2).
 PLANTUML_JAR = os.environ.get("PLANTUML_JAR", str(BASE_DIR / "vendor" / "plantuml.jar"))

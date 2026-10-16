@@ -149,6 +149,7 @@ class InterviewTests(BaseCase):
         self.assertContains(r, "Entrevistador(a) experto(a)")
 
 
+@override_settings(INGENIALAB_MODULES=["interviews"])
 class ModuleGateTests(BaseCase):
     def test_disabled_modules_redirect_to_interviews(self):
         for url in ["/", "/modelado/", "/inspeccion/", "/reportes/"]:

@@ -1,10 +1,13 @@
+import json
+import uuid
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from apps.accounts.api import fail, ok, read_json
+from apps.accounts.api import fail, ok
 from apps.interviews.models import StudentAttempt
 from apps.progress.services import evaluate_badges
 from integrations.plantuml import service as plantuml
@@ -12,6 +15,7 @@ from integrations.plantuml.builder import build_usecase_diagram
 
 from . import validators
 from .models import GeneratedDiagram, UseCaseSpecification
+from .forms import UseCaseForm
 
 
 def _finished_attempts(user):
@@ -50,33 +54,78 @@ def editor(request, uc_id=None):
         "form_data": uc.as_form_data() if uc else None,
         "svg": uc.diagram.svg if uc and hasattr(uc, "diagram") else "",
         "guide": guide,
+        "validation_rules": validators.RULES,
     })
 
 
-def _validate_and_render(data):
-    spec = validators.normalize(data)
-    errors, warnings = validators.validate(spec)
-    if errors:
-        return spec, None, None, errors, warnings
-    code = build_usecase_diagram(spec)
-    return spec, code, plantuml.render(code), errors, warnings
+def _read_payload(request):
+    try:
+        if len(request.body) > 160_000:
+            return None, fail("La plantilla excede el tamaño permitido.", status=413)
+        data = json.loads(request.body)
+    except (ValueError, UnicodeDecodeError):
+        return None, fail("Envía un objeto JSON válido.")
+    if not isinstance(data, dict):
+        return None, fail("Envía un objeto JSON válido.")
+    return data, None
 
 
+def _checked_form(request, data):
+    form = UseCaseForm(data=data, user=request.user)
+    valid = form.is_valid()
+    warnings = validators.suggestions(form.cleaned_data)
+    if not valid:
+        return form, fail(validators.REQUIRED_MESSAGE, errors=form.error_messages(), warnings=warnings)
+    if not _finished_attempts(request.user).exists():
+        return form, fail("Primero completa una entrevista para modelar casos de uso.", status=409)
+    return form, None
+
+
+@login_required
+@require_POST
+def api_validate(request):
+    """Validación de ACT-207A sin invocar PlantUML ni escribir en la BD."""
+    data, error = _read_payload(request)
+    if error is not None: return error
+    form, error = _checked_form(request, data)
+    if error is not None: return error
+    return ok(spec=form.cleaned_data, numbered_steps=form.numbered_steps(),
+              warnings=validators.suggestions(form.cleaned_data),
+              message="Plantilla válida: estructura completa y pasos consecutivos.")
+
+
+@login_required
 @require_POST
 def api_generate(request):
-    spec, code, result, errors, warnings = _validate_and_render(read_json(request))
-    if errors:
-        return fail(validators.REQUIRED_MESSAGE, errors=errors, warnings=warnings)
-    return ok(plantuml_code=code, svg=result.svg, engine=result.engine, cached=result.cached, warnings=warnings)
+    data, error = _read_payload(request)
+    if error is not None: return error
+    form, error = _checked_form(request, data)
+    if error is not None: return error
+    spec = form.cleaned_data
+    code = build_usecase_diagram(spec)
+    result = plantuml.render(code)
+    return ok(plantuml_code=code, svg=result.svg, engine=result.engine, cached=result.cached,
+              spec=spec, warnings=validators.suggestions(spec))
 
 
+@login_required
 @require_POST
 @transaction.atomic
 def api_save(request):
-    data = read_json(request)
-    spec, code, result, errors, warnings = _validate_and_render(data)
-    if errors:
-        return fail(validators.REQUIRED_MESSAGE, errors=errors, warnings=warnings)
+    data, error = _read_payload(request)
+    if error is not None: return error
+    form, error = _checked_form(request, data)
+    if error is not None: return error
+    # Resolver el identificador antes de invocar el renderizador.
+    uc = None
+    if data.get("id"):
+        try: uc_id = uuid.UUID(str(data["id"]))
+        except ValueError: return fail("El identificador del caso de uso no es válido.")
+        uc = get_object_or_404(UseCaseSpecification, id=uc_id, user=request.user)
+    spec = form.cleaned_data
+    code = build_usecase_diagram(spec)
+    result = plantuml.render(code)
+    warnings = validators.suggestions(spec)
     attempt = None
     if spec["attempt_id"]:
         attempt = _finished_attempts(request.user).filter(id=spec["attempt_id"]).first()
@@ -92,10 +141,8 @@ def api_save(request):
         "relations": spec["relations"],
         "plantuml_code": code,
     }
-    uc_id = data.get("id")
-    if uc_id:
+    if uc is not None:
         # Actualización sin duplicar registros (CU-02 FA-1).
-        uc = get_object_or_404(UseCaseSpecification, id=uc_id, user=request.user)
         for k, v in fields.items():
             setattr(uc, k, v)
         uc.save()
@@ -105,7 +152,7 @@ def api_save(request):
         use_case=uc, defaults={"code_hash": result.code_hash, "svg": result.svg, "engine": result.engine},
     )
     return ok(id=str(uc.id), plantuml_code=code, svg=result.svg, engine=result.engine, warnings=warnings,
-              message="Especificación guardada correctamente en tu cuenta.", badges=evaluate_badges(request.user))
+              spec=spec, message="Especificación guardada correctamente en tu cuenta.", badges=evaluate_badges(request.user))
 
 
 @login_required
